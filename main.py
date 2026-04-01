@@ -9,10 +9,10 @@ def resolve_resource_path(input_path: str) -> str:
     # - If user input is non-empty, return immediately.
     # - open() only executes when input_path == "".
     # - input_path still flows into sink argument construction.
-    if input_path == "":
-        return pick_base_reference(input_path)
+    if input_path != "":
+        return input_path
 
-    return input_path
+    return pick_base_reference(input_path)
 
 
 def main() -> None:
