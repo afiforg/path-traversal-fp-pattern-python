@@ -1,26 +1,8 @@
 import sys
 
+import click
+
 from anchors import pick_base_reference
-
-
-COMMANDS: dict[str, callable] = {}
-
-
-def cli_command(name: str):
-    def decorator(func):
-        COMMANDS[name] = func
-        return func
-
-    return decorator
-
-
-def parse_option(args: list[str], option: str, default: str = "") -> str:
-    if option in args:
-        idx = args.index(option)
-        if idx + 1 < len(args):
-            return args[idx + 1]
-        raise ValueError(f"missing value for {option}")
-    return default
 
 
 def resolve_resource_path(input_path: str) -> str:
@@ -34,36 +16,16 @@ def resolve_resource_path(input_path: str) -> str:
     return pick_base_reference(input_path)
 
 
-@cli_command("resolve")
-def resolve_command(path: str = "") -> None:
+@click.command()
+@click.option("--path", "input_path", default="", help="user-provided path")
+def main(input_path: str) -> None:
     try:
-        result = resolve_resource_path(path)
+        result = resolve_resource_path(input_path)
     except OSError as err:
         print(f"error: {err}", file=sys.stderr)
         raise SystemExit(1)
 
     print(f"resolved path: {result}")
-
-
-def main() -> None:
-    args = sys.argv[1:]
-    command_name = "resolve"
-    if args and not args[0].startswith("-"):
-        command_name = args[0]
-        args = args[1:]
-
-    command = COMMANDS.get(command_name)
-    if command is None:
-        print(f"unknown command: {command_name}", file=sys.stderr)
-        raise SystemExit(2)
-
-    try:
-        path = parse_option(args, "--path", default="")
-    except ValueError as err:
-        print(f"error: {err}", file=sys.stderr)
-        raise SystemExit(2)
-
-    command(path=path)
 
 
 if __name__ == "__main__":
